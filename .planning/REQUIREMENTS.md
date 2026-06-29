@@ -51,7 +51,7 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 
 ### Resume Source of Truth
 
-- [ ] **RES-01**: The resume exists as Zod-validated **structured data** (`resume/master.yaml`) covering Profile, Summary, Skills, Experience, Projects, Education, Certificates, Languages; PDFs are outputs only and are **never parsed as input**
+- [x] **RES-01**: The resume exists as Zod-validated **structured data** (`resume/master.yaml`) covering Profile, Summary, Skills, Experience, Projects, Education, Certificates, Languages; PDFs are outputs only and are **never parsed as input**
 - [ ] **RES-02**: A renderer turns a structured resume into an ATS-readable, single-column, selectable-text PDF via an HTML stage (`structured resume → HTML → PDF`), as reusable output stages
 - [ ] **RES-03**: A deterministic integrity validator compares **structured master vs structured tailored** (entity-diff over the typed model) and rejects any output introducing a company, technology, project, or claim absent from the master — the reusable mechanism Phase 4 enforces, with no PDF parsing involved
 
@@ -170,7 +170,7 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | ART-01 | Phase 1.1 | Complete |
 | ART-02 | Phase 1.1 | Pending |
 | ART-03 | Phase 1.1 | Pending |
-| RES-01 | Phase 1.1 | Pending |
+| RES-01 | Phase 1.1 | Complete |
 | RES-02 | Phase 1.1 | Pending |
 | RES-03 | Phase 1.1 | Pending |
 | COMP-02 | Phase 2 | Pending |

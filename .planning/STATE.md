@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 01.1-01-PLAN.md
-last_updated: "2026-06-29T14:56:45.253Z"
-last_activity: "2026-06-29 — Completed 01.1-01 (historical-data tables: agent_runs, append-only job_events, generic artifacts registry + inferred types + migration 0001 applied on open); 6/6 schema tests green, typecheck clean, current-state tables untouched."
+status: executing
+stopped_at: Completed 01.1-04-PLAN.md
+last_updated: "2026-06-29T16:22:01.590Z"
+last_activity: "2026-06-29 — Completed 01.1-04 (resume source of truth: Zod ResumeSchema over 8 sections + Resume type + loadResume YAML loader with fail-fast validation + complete master.example.yaml; no PDF ever parsed as input — RES-01); 10 new tests, 109/109 suite green, typecheck clean."
 progress:
   total_phases: 6
   completed_phases: 1
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-29)
 ## Current Position
 
 Phase: 1.1 (Observability, Auditability & Resume Source of Truth)
-Plan: 1 of 5 in current phase complete
-Status: Phase 1.1 in progress — Plan 01.1-01 done (historical-data schema)
-Last activity: 2026-06-29 — Completed 01.1-01 (historical-data tables: agent_runs, append-only job_events, generic artifacts registry + inferred types + migration 0001 applied on open); 6/6 schema tests green, typecheck clean, current-state tables untouched.
+Plan: 01.1-04 of 5 in current phase complete
+Status: Phase 1.1 in progress — Plan 01.1-04 done (resume source of truth)
+Last activity: 2026-06-29 — Completed 01.1-04 (resume source of truth: Zod ResumeSchema over 8 sections + Resume type + loadResume YAML loader with fail-fast validation + complete master.example.yaml; no PDF ever parsed as input — RES-01); 10 new tests, 109/109 suite green, typecheck clean.
 
 Progress: [███████░░░] 70%
 
@@ -54,6 +54,7 @@ Progress: [███████░░░] 70%
 | Phase 01 P04 | 12 | 3 tasks | 9 files |
 | Phase 01-foundations P05 | 4 | 3 tasks | 6 files |
 | Phase 01.1 P01 | 6 | 1 tasks | 5 files |
+| Phase 01.1 P04 | 6 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,7 @@ Recent decisions affecting current work:
 - [Phase 01.1]: Current-state (Jobs/Applications/Companies) vs historical-data (AgentRuns/JobEvents/Artifacts) are kept strictly separate; run history is emitted centrally by the agent-running framework, not by agents; events are append-only; artifacts are a generic typed table (no per-type path columns)
 - [Phase 01.1]: Resume is structured data (resume/master.yaml) as the source of truth — PDFs are output-only, never parsed; tailoring is structured-in/structured-out; integrity validation is a deterministic structured-vs-structured entity-diff. Phase 4 RESUME reqs rewritten to build on this substrate
 - [Phase 01.1]: Historical-data tables added: agent_runs (run telemetry), append-only job_events (audit), generic artifacts registry (free-form type + JSON metadata, no per-type migration); current-state tables untouched
+- [Phase 01.1]: Resume schema: skills grouped as {category?, items[]} (addressable for tailoring reorder); array sections default to []; experience required; dates opaque strings; real resume/master.yaml gitignored, only master.example.yaml committed; loadResume is YAML-only (no PDF parser imported)
 
 ### Roadmap Evolution
 
@@ -96,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T14:56:34.836Z
-Stopped at: Completed 01.1-01-PLAN.md
+Last session: 2026-06-29T14:57:35.450Z
+Stopped at: Completed 01.1-04-PLAN.md
 Resume file: None
