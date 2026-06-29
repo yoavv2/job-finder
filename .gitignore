@@ -4,6 +4,9 @@ node_modules/
 # Secrets — NEVER commit
 .env
 
+# Real resume master is user data — only the example is committed
+resume/master.yaml
+
 # Local databases (SQLite + WAL)
 *.db
 *.db-wal

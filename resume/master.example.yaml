@@ -1,0 +1,77 @@
+# Resume master — structured source of truth.
+#
+# This is the TEMPLATE. Copy it to `resume/master.yaml` and edit with your real
+# data. The real `resume/master.yaml` is user data and is gitignored; only this
+# example is committed. PDFs are OUTPUTS ONLY — this YAML is the single input.
+profile:
+  name: Ada Lovelace
+  email: ada@example.com
+  phone: "+1-555-0100"
+  location: London, UK
+  website: https://ada.example.com
+  linkedin: https://linkedin.com/in/adalovelace
+  github: https://github.com/adalovelace
+
+summary: >-
+  Backend engineer with 8 years building reliable, well-tested distributed
+  systems. Specializes in TypeScript, Node.js, and event-driven architectures.
+
+skills:
+  - category: Languages
+    items: [TypeScript, JavaScript, Python, SQL]
+  - category: Platforms
+    items: [Node.js, SQLite, PostgreSQL, Docker]
+  - category: Practices
+    items: [TDD, Event sourcing, CI/CD]
+
+experience:
+  - company: Analytical Engines Ltd
+    title: Staff Software Engineer
+    location: London, UK
+    startDate: "2021-03"
+    current: true
+    bullets:
+      - Led the redesign of the job-processing pipeline to a DB-as-message-bus model, cutting double-processing to zero.
+      - Introduced append-only event logging, giving the team full auditability of every agent run.
+  - company: Difference Machines
+    title: Senior Software Engineer
+    location: Remote
+    startDate: "2018-01"
+    endDate: "2021-02"
+    bullets:
+      - Built a structured-resume tailoring service with deterministic integrity validation.
+      - Mentored four engineers on test-driven development.
+
+projects:
+  - name: job-finder
+    description: Autonomous job-search agent that discovers, matches, and tailors applications.
+    technologies: [TypeScript, Drizzle, better-sqlite3, Zod]
+    url: https://github.com/adalovelace/job-finder
+    bullets:
+      - Designed the Zod-validated resume schema as the source of truth.
+  - name: ada-notes
+    description: A minimal append-only note store.
+    technologies: [Node.js, SQLite]
+
+education:
+  - institution: University of London
+    degree: BSc
+    field: Mathematics
+    startDate: "2010-09"
+    endDate: "2013-06"
+    details: First-class honours; thesis on analytical computation.
+
+certificates:
+  - name: Certified Kubernetes Application Developer
+    issuer: CNCF
+    date: "2022-05"
+    url: https://example.com/ckad/ada
+  - name: AWS Solutions Architect Associate
+    issuer: Amazon Web Services
+    date: "2020-11"
+
+languages:
+  - name: English
+    proficiency: Native
+  - name: French
+    proficiency: Professional
