@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   index,
   integer,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -126,6 +127,131 @@ export const applications = sqliteTable('applications', {
     .default(sql`(unixepoch() * 1000)`),
 });
 
+/**
+ * ─── Historical-data tables ──────────────────────────────────────────────
+ *
+ * The three tables below record **what happened over time** and are kept
+ * strictly separate from the current-state tables above (companies/jobs/
+ * applications). Current state answers "what is true now"; historical data
+ * answers "what happened". Per the locked Phase 01.1 architecture, the
+ * current-state tables are never touched by this layer.
+ */
+
+/**
+ * AgentRuns — one row per execution of an agent (OBS-01). Emitted centrally by
+ * the run-history framework (Plan 03), not by agents themselves. Carries the
+ * full lifecycle (startedAt/finishedAt/status), the work counters
+ * (processed/succeeded/failed), and the cost telemetry (durationMs/tokens/
+ * estimatedCost) the observability layer reports on. Indexed by `agent` so
+ * run-history queries ("all runs of the collector") stay cheap.
+ */
+export const agentRuns = sqliteTable(
+  'agent_runs',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    /** Logical agent name (e.g. 'collector', 'scorer'). */
+    agent: text('agent').notNull(),
+    /** When the run began. */
+    startedAt: integer('started_at', { mode: 'timestamp_ms' }).notNull(),
+    /** When the run ended, null while in-flight. */
+    finishedAt: integer('finished_at', { mode: 'timestamp_ms' }),
+    /** Lifecycle status; defaults to STARTED on insert. */
+    status: text('status')
+      .$type<'STARTED' | 'RUNNING' | 'SUCCESS' | 'FAILED'>()
+      .notNull()
+      .default('STARTED'),
+    /** Items the run handled. */
+    processed: integer('processed').notNull().default(0),
+    /** Items that succeeded. */
+    succeeded: integer('succeeded').notNull().default(0),
+    /** Items that failed. */
+    failed: integer('failed').notNull().default(0),
+    /** Wall-clock duration in ms, null until finished. */
+    durationMs: integer('duration_ms'),
+    /** Total LLM tokens consumed. */
+    tokens: integer('tokens').notNull().default(0),
+    /** Estimated run cost in currency units (real for sub-cent precision). */
+    estimatedCost: real('estimated_cost').notNull().default(0),
+    /** Error message when status is FAILED, null otherwise. */
+    error: text('error'),
+    /** Free-form JSON metadata (run-specific context). */
+    metadata: text('metadata'),
+  },
+  (table) => [
+    // Run-history queries filter/group by agent.
+    index('agent_runs_agent_idx').on(table.agent),
+  ],
+);
+
+/**
+ * JobEvents — the **append-only** audit trail of everything that happened to a
+ * job (EVT-01). Deliberately has no `updatedAt`: rows are written once and
+ * never mutated, so a job's full history is reconstructable purely by querying
+ * its events in order. Indexed by `jobId` for that history reconstruction.
+ */
+export const jobEvents = sqliteTable(
+  'job_events',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    /** FK -> jobs.id. */
+    jobId: text('job_id')
+      .notNull()
+      .references(() => jobs.id),
+    /** Agent that emitted the event. */
+    agent: text('agent').notNull(),
+    /** Event name (e.g. 'JOB_DISCOVERED', 'JOB_SCORED'). Free-form text. */
+    event: text('event').notNull(),
+    /** Optional JSON payload describing the event. */
+    payload: text('payload'),
+    // Append-only: createdAt only, NO updatedAt — events are never mutated.
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (table) => [
+    // Reconstruct a single job's full history by query.
+    index('job_events_job_id_idx').on(table.jobId),
+  ],
+);
+
+/**
+ * Artifacts — a **generic** registry of files produced for a job (ART-01).
+ * `type` is free-form text (NOT an enum) and `metadata` is JSON, so a brand-new
+ * artifact kind needs no schema change or migration. The composite (jobId,
+ * type) index serves both list-by-job and list-by-type lookups.
+ */
+export const artifacts = sqliteTable(
+  'artifacts',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    /** FK -> jobs.id. */
+    jobId: text('job_id')
+      .notNull()
+      .references(() => jobs.id),
+    /** Free-form artifact kind (e.g. 'resume_pdf'); new types need no migration. */
+    type: text('type').notNull(),
+    /** Filesystem (or storage) path to the artifact. */
+    path: text('path').notNull(),
+    /** MIME type, when known. */
+    mimeType: text('mime_type'),
+    /** Free-form JSON metadata. */
+    metadata: text('metadata'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (table) => [
+    // Serves both list-by-job and list-by-(job,type) lookups.
+    index('artifacts_job_id_type_idx').on(table.jobId, table.type),
+  ],
+);
+
 /** Inferred row types — Plan 04 repositories consume these. */
 export type Company = typeof companies.$inferSelect;
 export type NewCompany = typeof companies.$inferInsert;
@@ -133,3 +259,9 @@ export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type Application = typeof applications.$inferSelect;
 export type NewApplication = typeof applications.$inferInsert;
+export type AgentRun = typeof agentRuns.$inferSelect;
+export type NewAgentRun = typeof agentRuns.$inferInsert;
+export type JobEvent = typeof jobEvents.$inferSelect;
+export type NewJobEvent = typeof jobEvents.$inferInsert;
+export type Artifact = typeof artifacts.$inferSelect;
+export type NewArtifact = typeof artifacts.$inferInsert;

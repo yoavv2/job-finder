@@ -8,6 +8,13 @@
       "when": 1782729566919,
       "tag": "0000_open_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782744832698,
+      "tag": "0001_eager_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }
