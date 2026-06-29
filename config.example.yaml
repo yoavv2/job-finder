@@ -1,0 +1,35 @@
+# Job Finder configuration.
+# Copy to config.yaml and adjust. Contains NO secrets — LLM API keys live in
+# .env only (see .env.example). config.yaml may be committed; .env may not.
+
+# Cron-ish schedules per autonomous agent (standard 5-field cron strings).
+schedule:
+  discovery: "0 */6 * * *" # every 6 hours
+  matching: "0 7 * * *" # daily at 07:00
+  resume: "0 8 * * *" # daily at 08:00
+
+# What kinds of jobs to discover and match.
+filters:
+  keywords:
+    - "typescript"
+    - "node"
+    - "backend"
+  countries:
+    - "US"
+    - "IL"
+  seniority:
+    - "senior"
+    - "staff"
+
+# Minimum match score (0-100) for a job to be surfaced.
+minimumMatchScore: 70
+
+# LLM provider selection. provider: "openai" | "anthropic".
+# The matching API key is read from .env (OPENAI_API_KEY / ANTHROPIC_API_KEY).
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4"
+
+# Local SQLite database (gitignored at runtime via *.db).
+database:
+  path: "./data/jobs.db"

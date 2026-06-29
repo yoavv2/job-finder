@@ -1,0 +1,26 @@
+# Local working configuration. Contains NO secrets (keys live in .env).
+schedule:
+  discovery: "0 */6 * * *"
+  matching: "0 7 * * *"
+  resume: "0 8 * * *"
+
+filters:
+  keywords:
+    - "typescript"
+    - "node"
+    - "backend"
+  countries:
+    - "US"
+    - "IL"
+  seniority:
+    - "senior"
+    - "staff"
+
+minimumMatchScore: 70
+
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4"
+
+database:
+  path: "./data/jobs.db"
