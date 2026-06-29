@@ -33,19 +33,19 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 
 ### Observability — Agent Run History
 
-- [ ] **OBS-01**: An `AgentRuns` table records one row per agent execution (`id, agent, startedAt, finishedAt, status, processed, succeeded, failed, durationMs, tokens, estimatedCost, error, metadata`)
+- [x] **OBS-01**: An `AgentRuns` table records one row per agent execution (`id, agent, startedAt, finishedAt, status, processed, succeeded, failed, durationMs, tokens, estimatedCost, error, metadata`)
 - [ ] **OBS-02**: Run records are emitted **centrally by the framework** that invokes `Agent.run(ctx)` — agents never create their own — managing the STARTED→RUNNING→SUCCESS/FAILED lifecycle automatically, finalizing as FAILED with the error captured even when `run` throws
 - [ ] **OBS-03**: Token usage and estimated cost accrued through the `LLMProvider` during a run are aggregated onto the run record (`tokens`, `estimatedCost`) to support cost and performance analysis
 
 ### Audit — Event Log
 
-- [ ] **EVT-01**: A `JobEvents` table exists (`id, jobId, agent, event, payload, createdAt`) as an **append-only** audit trail — events are never updated or deleted
+- [x] **EVT-01**: A `JobEvents` table exists (`id, jobId, agent, event, payload, createdAt`) as an **append-only** audit trail — events are never updated or deleted
 - [ ] **EVT-02**: Important job transitions emit an immutable event (e.g. `JOB_DISCOVERED`, `MATCH_STARTED`, `MATCH_COMPLETED`, `MATCH_REJECTED`, `TAILOR_STARTED`, `TAILOR_COMPLETED`, `ERROR`); `Job.status` remains the current-state field while `JobEvents` is the history — history is never overwritten
 - [ ] **EVT-03**: Events are written and read through the repository layer (no raw SQL) and are queryable by `jobId` to reconstruct a job's full history
 
 ### Artifacts
 
-- [ ] **ART-01**: A generic `Artifacts` table exists (`id, jobId, type, path, mimeType, metadata, createdAt`) supporting arbitrary artifact types (`resume_pdf`, `resume_html`, `resume_json`, `cover_letter`, `llm_response`, `analysis`, `screenshot`) **without schema changes** for new types
+- [x] **ART-01**: A generic `Artifacts` table exists (`id, jobId, type, path, mimeType, metadata, createdAt`) supporting arbitrary artifact types (`resume_pdf`, `resume_html`, `resume_json`, `cover_letter`, `llm_response`, `analysis`, `screenshot`) **without schema changes** for new types
 - [ ] **ART-02**: Jobs reference artifacts via the `Artifacts` table rather than per-type path columns on the Job row, so new artifact types require no migration
 - [ ] **ART-03**: Artifact creation and lookup go through the repository layer (an `ArtifactRepository`) with helpers to list a job's artifacts by job and by type
 
@@ -161,13 +161,13 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | LLM-03 | Phase 1 | Complete |
 | LLM-04 | Phase 1 | Complete |
 | COMP-01 | Phase 1 | Complete |
-| OBS-01 | Phase 1.1 | Pending |
+| OBS-01 | Phase 1.1 | Complete |
 | OBS-02 | Phase 1.1 | Pending |
 | OBS-03 | Phase 1.1 | Pending |
-| EVT-01 | Phase 1.1 | Pending |
+| EVT-01 | Phase 1.1 | Complete |
 | EVT-02 | Phase 1.1 | Pending |
 | EVT-03 | Phase 1.1 | Pending |
-| ART-01 | Phase 1.1 | Pending |
+| ART-01 | Phase 1.1 | Complete |
 | ART-02 | Phase 1.1 | Pending |
 | ART-03 | Phase 1.1 | Pending |
 | RES-01 | Phase 1.1 | Pending |

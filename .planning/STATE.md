@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-06-29T14:26:41.413Z"
-last_activity: "2026-06-29 — Completed 01-05 (agent core: Agent/AgentContext/AgentResult contracts + open/closed AgentRegistry + buildContext wiring repos/llm/config/pino-logger/clock); 93/93 tests green, typecheck clean. Phase 1 complete."
+status: in_progress
+stopped_at: Completed 01.1-01-PLAN.md
+last_updated: "2026-06-29T14:56:45.253Z"
+last_activity: "2026-06-29 — Completed 01.1-01 (historical-data tables: agent_runs, append-only job_events, generic artifacts registry + inferred types + migration 0001 applied on open); 6/6 schema tests green, typecheck clean, current-state tables untouched."
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_plans: 10
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29)
 
 **Core value:** Reduce manual job-search work by 90%+ while maintaining high application quality — the discovery → matching → resume-tailoring loop runs autonomously and produces trustworthy, job-specific resumes.
-**Current focus:** Phase 1 — Foundations
+**Current focus:** Phase 1.1 — Observability, Auditability & Resume Source of Truth
 
 ## Current Position
 
-Phase: 1 of 5 (Foundations)
-Plan: 5 of 5 in current phase
-Status: Phase 1 complete — all 5 plans done (Wave 4 complete)
-Last activity: 2026-06-29 — Completed 01-05 (agent core: Agent/AgentContext/AgentResult contracts + open/closed AgentRegistry + buildContext wiring repos/llm/config/pino-logger/clock); 93/93 tests green, typecheck clean. Phase 1 complete.
+Phase: 1.1 (Observability, Auditability & Resume Source of Truth)
+Plan: 1 of 5 in current phase complete
+Status: Phase 1.1 in progress — Plan 01.1-01 done (historical-data schema)
+Last activity: 2026-06-29 — Completed 01.1-01 (historical-data tables: agent_runs, append-only job_events, generic artifacts registry + inferred types + migration 0001 applied on open); 6/6 schema tests green, typecheck clean, current-state tables untouched.
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 | Phase 01 P01 | 5 | 2 tasks | 10 files |
 | Phase 01 P04 | 12 | 3 tasks | 9 files |
 | Phase 01-foundations P05 | 4 | 3 tasks | 6 files |
+| Phase 01.1 P01 | 6 | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Recent decisions affecting current work:
 - [Phase 01-foundations]: Agent core: unified Agent interface + Map-based open/closed AgentRegistry; buildContext(config, overrides) does manual DI wiring repos+llm+config+pino-logger+injected clock into one AgentContext (no DI framework, no god base class)
 - [Phase 01.1]: Current-state (Jobs/Applications/Companies) vs historical-data (AgentRuns/JobEvents/Artifacts) are kept strictly separate; run history is emitted centrally by the agent-running framework, not by agents; events are append-only; artifacts are a generic typed table (no per-type path columns)
 - [Phase 01.1]: Resume is structured data (resume/master.yaml) as the source of truth — PDFs are output-only, never parsed; tailoring is structured-in/structured-out; integrity validation is a deterministic structured-vs-structured entity-diff. Phase 4 RESUME reqs rewritten to build on this substrate
+- [Phase 01.1]: Historical-data tables added: agent_runs (run telemetry), append-only job_events (audit), generic artifacts registry (free-form type + JSON metadata, no per-type migration); current-state tables untouched
 
 ### Roadmap Evolution
 
@@ -94,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T14:25:30.418Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-06-29T14:56:34.836Z
+Stopped at: Completed 01.1-01-PLAN.md
 Resume file: None
