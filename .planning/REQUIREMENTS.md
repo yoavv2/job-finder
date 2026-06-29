@@ -31,6 +31,30 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 - [ ] **COMP-02**: v1 bootstraps companies from a seed (config/seed file) — explicitly a temporary bootstrap, designed so an automated Company Discovery agent can later populate the same table without changing Job Discovery
 - [ ] **COMP-03**: Syncing jobs for a company updates its `lastSeenAt`; a company referenced by a job but not yet recorded is upserted (sets `firstSeenAt`) so the Companies KB stays current automatically
 
+### Observability — Agent Run History
+
+- [ ] **OBS-01**: An `AgentRuns` table records one row per agent execution (`id, agent, startedAt, finishedAt, status, processed, succeeded, failed, durationMs, tokens, estimatedCost, error, metadata`)
+- [ ] **OBS-02**: Run records are emitted **centrally by the framework** that invokes `Agent.run(ctx)` — agents never create their own — managing the STARTED→RUNNING→SUCCESS/FAILED lifecycle automatically, finalizing as FAILED with the error captured even when `run` throws
+- [ ] **OBS-03**: Token usage and estimated cost accrued through the `LLMProvider` during a run are aggregated onto the run record (`tokens`, `estimatedCost`) to support cost and performance analysis
+
+### Audit — Event Log
+
+- [ ] **EVT-01**: A `JobEvents` table exists (`id, jobId, agent, event, payload, createdAt`) as an **append-only** audit trail — events are never updated or deleted
+- [ ] **EVT-02**: Important job transitions emit an immutable event (e.g. `JOB_DISCOVERED`, `MATCH_STARTED`, `MATCH_COMPLETED`, `MATCH_REJECTED`, `TAILOR_STARTED`, `TAILOR_COMPLETED`, `ERROR`); `Job.status` remains the current-state field while `JobEvents` is the history — history is never overwritten
+- [ ] **EVT-03**: Events are written and read through the repository layer (no raw SQL) and are queryable by `jobId` to reconstruct a job's full history
+
+### Artifacts
+
+- [ ] **ART-01**: A generic `Artifacts` table exists (`id, jobId, type, path, mimeType, metadata, createdAt`) supporting arbitrary artifact types (`resume_pdf`, `resume_html`, `resume_json`, `cover_letter`, `llm_response`, `analysis`, `screenshot`) **without schema changes** for new types
+- [ ] **ART-02**: Jobs reference artifacts via the `Artifacts` table rather than per-type path columns on the Job row, so new artifact types require no migration
+- [ ] **ART-03**: Artifact creation and lookup go through the repository layer (an `ArtifactRepository`) with helpers to list a job's artifacts by job and by type
+
+### Resume Source of Truth
+
+- [ ] **RES-01**: The resume exists as Zod-validated **structured data** (`resume/master.yaml`) covering Profile, Summary, Skills, Experience, Projects, Education, Certificates, Languages; PDFs are outputs only and are **never parsed as input**
+- [ ] **RES-02**: A renderer turns a structured resume into an ATS-readable, single-column, selectable-text PDF via an HTML stage (`structured resume → HTML → PDF`), as reusable output stages
+- [ ] **RES-03**: A deterministic integrity validator compares **structured master vs structured tailored** (entity-diff over the typed model) and rejects any output introducing a company, technology, project, or claim absent from the master — the reusable mechanism Phase 4 enforces, with no PDF parsing involved
+
 ### Job Discovery
 
 - [ ] **DISC-01**: Job Discovery reads `active` companies that have a known `ats` + `boardToken` and syncs their published jobs — decoupled from how those companies were discovered
@@ -53,10 +77,10 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 ### Resume Customization
 
 - [ ] **RESUME-01**: Resume agent runs only for jobs at/above the configured match-score threshold
-- [ ] **RESUME-02**: Given the base resume + job description, it produces a tailored resume (reorder skills, rewrite summary, emphasize relevant experience, optimize keywords)
-- [ ] **RESUME-03**: A deterministic integrity validator rejects any output containing a company, technology, project, or claim not present in the base resume — fabrication is blocked mechanically, not just by prompt wording
-- [ ] **RESUME-04**: The tailored resume is rendered to `Resume_CompanyName.pdf` with selectable text (ATS-readable, single-column)
-- [ ] **RESUME-05**: The generated PDF path is stored on the job/application row and the job transitions to `TAILORED`
+- [ ] **RESUME-02**: Given the **structured master resume** (RES-01) + job description, it produces a **structured tailored resume** of the same schema (reorder skills, rewrite summary, emphasize relevant experience, optimize keywords) — operating on structured data, never on PDF text
+- [ ] **RESUME-03**: The structured tailored resume passes the deterministic structured-vs-structured integrity validator (RES-03) before rendering — any company, technology, project, or claim absent from the master is rejected mechanically, not just by prompt wording
+- [ ] **RESUME-04**: The validated tailored resume is rendered via the HTML→PDF pipeline (RES-02) to `Resume_CompanyName.pdf` with selectable text (ATS-readable, single-column); the PDF is output-only
+- [ ] **RESUME-05**: The structured tailored resume and the rendered PDF are recorded as `Artifacts` (ART-01) linked to the job/application, and the job transitions to `TAILORED`
 
 ### Scheduler & Operability
 
@@ -137,6 +161,18 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | LLM-03 | Phase 1 | Complete |
 | LLM-04 | Phase 1 | Complete |
 | COMP-01 | Phase 1 | Complete |
+| OBS-01 | Phase 1.1 | Pending |
+| OBS-02 | Phase 1.1 | Pending |
+| OBS-03 | Phase 1.1 | Pending |
+| EVT-01 | Phase 1.1 | Pending |
+| EVT-02 | Phase 1.1 | Pending |
+| EVT-03 | Phase 1.1 | Pending |
+| ART-01 | Phase 1.1 | Pending |
+| ART-02 | Phase 1.1 | Pending |
+| ART-03 | Phase 1.1 | Pending |
+| RES-01 | Phase 1.1 | Pending |
+| RES-02 | Phase 1.1 | Pending |
+| RES-03 | Phase 1.1 | Pending |
 | COMP-02 | Phase 2 | Pending |
 | COMP-03 | Phase 2 | Pending |
 | DISC-01 | Phase 2 | Pending |
@@ -164,10 +200,10 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | SCHED-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 38 total
-- Mapped to phases: 38 ✓
+- v1 requirements: 50 total (38 original + 12 from Phase 1.1 insertion)
+- Mapped to phases: 50 ✓
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-29*
-*Last updated: 2026-06-29 after Source/Company architecture adjustment (split Company Discovery from Job Discovery)*
+*Last updated: 2026-06-29 — inserted Phase 1.1 (Observability/Audit/Artifacts/Resume-SoT: OBS/EVT/ART/RES) and rewrote Phase 4 RESUME reqs to build on the structured-resume substrate*

@@ -73,6 +73,12 @@ Recent decisions affecting current work:
 - [Phase 01]: Repository layer hides Drizzle/raw SQL inside src/db; agents depend on JobRepository/CompanyRepository/ApplicationRepository via buildRepositories(handle)
 - [Phase 01]: Atomic claim = single BEGIN IMMEDIATE UPDATE...WHERE status=from ... RETURNING on the raw sqlite handle; proven by overlap test to never double-process a job
 - [Phase 01-foundations]: Agent core: unified Agent interface + Map-based open/closed AgentRegistry; buildContext(config, overrides) does manual DI wiring repos+llm+config+pino-logger+injected clock into one AgentContext (no DI framework, no god base class)
+- [Phase 01.1]: Current-state (Jobs/Applications/Companies) vs historical-data (AgentRuns/JobEvents/Artifacts) are kept strictly separate; run history is emitted centrally by the agent-running framework, not by agents; events are append-only; artifacts are a generic typed table (no per-type path columns)
+- [Phase 01.1]: Resume is structured data (resume/master.yaml) as the source of truth — PDFs are output-only, never parsed; tailoring is structured-in/structured-out; integrity validation is a deterministic structured-vs-structured entity-diff. Phase 4 RESUME reqs rewritten to build on this substrate
+
+### Roadmap Evolution
+
+- Phase 1.1 inserted after Phase 1: Observability, Auditability & Resume Source of Truth (INSERTED — foundational capabilities cheaper to add before pipeline agents exist). Added 12 reqs (OBS/EVT/ART/RES); rewrote Phase 4 RESUME-02..05 to use the structured-resume substrate.
 
 ### Pending Todos
 
