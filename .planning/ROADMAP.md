@@ -2,7 +2,7 @@
 
 ## Overview
 
-This roadmap builds a plugin-based multi-agent job-application pipeline from the persistence seam outward. Phase 1 lays the entire foundation — typed config, the SQLite/Drizzle schema and repository layer, the WAL-mode atomic-claim choreography, the `Agent` interface + registry, the status state machine, and the provider-agnostic `LLMProvider` interface with two concrete implementations — because every agent above depends on it. Phases 2–4 then add the three pipeline agents in dependency order (Discovery produces `NEW` jobs, Matching scores them into `SCORED`/`REJECTED_LOW_SCORE`, Resume tailors eligible jobs into `TAILORED` PDFs), each communicating only through the database. Phase 5 ties the independently-runnable agents together under a scheduler with an overlap guard, structured logging, and missed-run self-heal — turning a set of proven agents into an autonomous platform.
+This roadmap builds a plugin-based multi-agent job-application pipeline from the persistence seam outward. Phase 1 lays the entire foundation — typed config, the SQLite/Drizzle schema and repository layer, the WAL-mode atomic-claim choreography, the `Agent` interface + registry, the status state machine, and the provider-agnostic `LLMProvider` interface with two concrete implementations — because every agent above depends on it. Phases 2–4 then add the three pipeline agents in dependency order (Job Discovery reads seeded `Company` records and produces `NEW` jobs — keeping Company discovery decoupled so it can be automated later — Matching scores them into `SCORED`/`REJECTED_LOW_SCORE`, Resume tailors eligible jobs into `TAILORED` PDFs), each communicating only through the database. Phase 5 ties the independently-runnable agents together under a scheduler with an overlap guard, structured logging, and missed-run self-heal — turning a set of proven agents into an autonomous platform.
 
 ## Phases
 
@@ -13,7 +13,7 @@ This roadmap builds a plugin-based multi-agent job-application pipeline from the
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundations** - Config, persistence seam, agent/registry/state-machine contracts, and the provider-agnostic LLM layer that everything depends on
-- [ ] **Phase 2: Discovery** - Discovery agent fetches, normalizes, dedupes, and filters ATS jobs into `NEW` rows via a Collector + per-ATS adapters
+- [ ] **Phase 2: Job Discovery** - Job Discovery reads seeded `Company` records, dispatches each to its ATS adapter, and syncs/dedupes/filters jobs into `NEW` rows while keeping the Companies KB current
 - [ ] **Phase 3: Matching** - Matching agent scores every `NEW` job against the resume and branches to `SCORED` or `REJECTED_LOW_SCORE`
 - [ ] **Phase 4: Resume Customization** - Resume agent tailors eligible jobs into integrity-validated `Resume_Company.pdf` files and marks them `TAILORED`
 - [ ] **Phase 5: Scheduler & Hardening** - CLI entrypoints + scheduler with overlap guard, structured logging, and missed-run self-heal that runs the whole loop autonomously
@@ -23,23 +23,24 @@ Decimal phases appear between their surrounding integers in numeric order.
 ### Phase 1: Foundations
 **Goal**: Stand up the typed, durable substrate every agent runs on — configuration, persistence, the agent contract + status choreography, and a provider-agnostic LLM layer — so that no agent has to invent infrastructure.
 **Depends on**: Nothing (first phase)
-**Requirements**: FND-01, FND-02, FND-03, FND-04, FND-05, FND-06, FND-07, FND-08, LLM-01, LLM-02, LLM-03, LLM-04
+**Requirements**: FND-01, FND-02, FND-03, FND-04, FND-05, FND-06, FND-07, FND-08, LLM-01, LLM-02, LLM-03, LLM-04, COMP-01
 **Success Criteria** (what must be TRUE):
   1. The app loads all settings from a YAML config validated by a Zod schema, fails fast with a clear error on invalid config, and reads LLM API keys from a gitignored `.env` — no hardcoded values anywhere
-  2. A migrated SQLite database opens in WAL mode with a `busy_timeout` and exposes `Jobs` and `Applications` tables exclusively through a repository layer (no raw SQL outside it), including an atomic status-claim/transition helper proven not to double-process under overlap
+  2. A migrated SQLite database opens in WAL mode with a `busy_timeout` and exposes `Companies`, `Jobs`, and `Applications` tables (Companies modeled as an emergent KB: `ats, boardToken, careersUrl, website, firstSeenAt, lastSeenAt, active`) exclusively through a repository layer (no raw SQL outside it), including an atomic status-claim/transition helper proven not to double-process under overlap
   3. A unified `Agent` interface (`name`, `run(ctx)`) and a registry exist such that registering a new agent requires no change to existing agents, and the job-status state machine (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`) is enforced for transitions
   4. A provider-agnostic `LLMProvider` interface with at least two concrete implementations (e.g. OpenAI + Claude) is selectable purely via `llm.provider` config, returns Zod-schema-validated structured output, and delimits/sanitizes job-description text as untrusted input
 **Plans**: TBD
 
-### Phase 2: Discovery
-**Goal**: Produce trustworthy `NEW` job rows by fetching from ATS public JSON APIs through a Collector + per-ATS adapter pattern, deduping and filtering before storage, and surviving individual source failures.
+### Phase 2: Job Discovery
+**Goal**: Produce trustworthy `NEW` job rows by reading seeded `Company` records, dispatching each to its ATS adapter (Collector + per-ATS adapter over public JSON APIs), deduping and filtering before storage, keeping the Companies KB current, and surviving individual company/source failures — with the seam designed so an automated Company Discovery agent can later replace seeding without touching this pipeline.
 **Depends on**: Phase 1
-**Requirements**: DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07
+**Requirements**: COMP-02, COMP-03, DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07, DISC-08
 **Success Criteria** (what must be TRUE):
-  1. Running the discovery agent fetches published jobs from ATS public JSON APIs via a Collector and adds a new ATS source as a single additive adapter file, with Greenhouse working first and Lever/Ashby/Workable each retrieving and normalizing into the common `Jobs` shape
-  2. Discovered jobs are deduplicated on a stable identity key (`source` + external id) so re-runs create no duplicates, and are stored with `status = NEW` plus discovery metadata (source, url, postedDate, discoveredAt)
-  3. Jobs are filtered by configured keywords, location/country, and seniority before storage, so irrelevant roles never enter the pipeline
-  4. Discovery paces requests politely with backoff/retry and a single failing source does not abort the whole run
+  1. Companies are bootstrapped from a seed (explicitly temporary), and Job Discovery reads `active` companies with a known `ats` + `boardToken` and syncs their jobs — never depending on how those companies were discovered
+  2. A Collector dispatches each company to the correct per-ATS adapter by `ats` field, with Greenhouse working first and Lever/Ashby/Workable each added as a single additive adapter file normalizing into the common `Jobs` shape
+  3. Jobs are deduplicated on a stable identity key (`ats`/source + external id) so re-runs create no duplicates, stored with `status = NEW`, linked to their `Company`, with discovery metadata (source, url, postedDate, discoveredAt); syncing updates the company's `lastSeenAt` (upserting an unrecorded company)
+  4. Jobs are filtered by configured keywords, location/country, and seniority before storage, so irrelevant roles never enter the pipeline
+  5. Discovery paces requests politely with backoff/retry and a single failing company/source does not abort the whole run
 **Plans**: TBD
 
 ### Phase 3: Matching
@@ -80,7 +81,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundations | 0/TBD | Not started | - |
-| 2. Discovery | 0/TBD | Not started | - |
+| 2. Job Discovery | 0/TBD | Not started | - |
 | 3. Matching | 0/TBD | Not started | - |
 | 4. Resume Customization | 0/TBD | Not started | - |
 | 5. Scheduler & Hardening | 0/TBD | Not started | - |

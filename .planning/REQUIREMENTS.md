@@ -12,7 +12,7 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 - [ ] **FND-01**: All settings load from a YAML config file (schedule, filters, keywords, countries, `minimumMatchScore`, `llm.provider`) — no hardcoded values
 - [ ] **FND-02**: Config is validated against a Zod schema on load; invalid config fails fast with a clear error
 - [ ] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
-- [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Jobs` and `Applications` tables
+- [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Companies`, `Jobs`, and `Applications` tables
 - [ ] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
 - [ ] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
 - [ ] **FND-07**: A unified `Agent` interface exists (`name`, `run(ctx): Promise<AgentResult>`) and agents are registered in a plugin registry — new agents add without modifying existing ones
@@ -25,15 +25,22 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 - [ ] **LLM-03**: Structured LLM outputs are schema-validated (Zod) so malformed responses are caught, not silently used
 - [ ] **LLM-04**: Job-description text is treated as untrusted input — sanitized/delimited before being sent to the LLM to resist prompt injection
 
-### Discovery
+### Companies
 
-- [ ] **DISC-01**: Discovery agent fetches published jobs from ATS public JSON APIs via a Collector + per-ATS Adapter pattern
-- [ ] **DISC-02**: Greenhouse adapter retrieves and normalizes jobs into the common `Jobs` shape
-- [ ] **DISC-03**: Lever, Ashby, and Workable adapters each retrieve and normalize jobs (added additively, one file each)
-- [ ] **DISC-04**: New jobs are deduplicated on a stable identity key (`source` + external job id) so re-runs don't create duplicates
-- [ ] **DISC-05**: Jobs are filtered by configured keywords, location/country, and seniority before storage
-- [ ] **DISC-06**: Newly discovered jobs are stored with `status = NEW` and discovery metadata (source, url, postedDate, discoveredAt)
-- [ ] **DISC-07**: Discovery paces requests politely (backoff/retry) and survives a single source failing without aborting the run
+- [ ] **COMP-01**: A `Company` entity/table exists (`id, name, ats, boardToken, careersUrl, website, firstSeenAt, lastSeenAt, active`) — an accumulating knowledge base, not a config file
+- [ ] **COMP-02**: v1 bootstraps companies from a seed (config/seed file) — explicitly a temporary bootstrap, designed so an automated Company Discovery agent can later populate the same table without changing Job Discovery
+- [ ] **COMP-03**: Syncing jobs for a company updates its `lastSeenAt`; a company referenced by a job but not yet recorded is upserted (sets `firstSeenAt`) so the Companies KB stays current automatically
+
+### Job Discovery
+
+- [ ] **DISC-01**: Job Discovery reads `active` companies that have a known `ats` + `boardToken` and syncs their published jobs — decoupled from how those companies were discovered
+- [ ] **DISC-02**: A Collector dispatches each company to the correct per-ATS Adapter based on its `ats` field (Collector + Adapter pattern)
+- [ ] **DISC-03**: Greenhouse adapter retrieves and normalizes a company's jobs into the common `Jobs` shape via the ATS public JSON API
+- [ ] **DISC-04**: Lever, Ashby, and Workable adapters each retrieve and normalize jobs (added additively, one file each)
+- [ ] **DISC-05**: New jobs are deduplicated on a stable identity key (`ats`/source + external job id) so re-runs don't create duplicates
+- [ ] **DISC-06**: Jobs are filtered by configured keywords, location/country, and seniority before storage
+- [ ] **DISC-07**: Newly discovered jobs are stored with `status = NEW`, linked to their `Company`, with discovery metadata (source, url, postedDate, discoveredAt)
+- [ ] **DISC-08**: Discovery paces requests politely (backoff/retry) and survives a single company/source failing without aborting the run
 
 ### Matching
 
@@ -81,6 +88,18 @@ Deferred to future release. Tracked, not in current roadmap.
 
 - **REPORT-01**: Weekly report (jobs found, applications submitted, interviews, rejections, response rate, avg match score, top companies, most-requested skills)
 
+### Company Discovery
+
+- **CDISC-01**: A Company Discovery agent finds previously-unknown companies from external sources (aggregators, YC, Product Hunt, RSS, startup DBs), detects their ATS, and extracts the board token → creates/updates `Company` records (replaces manual seeding, no Job Discovery changes)
+
+### Company Enrichment
+
+- **ENRICH-01**: A Company Intelligence agent enriches `Company` records (industry, stage, employee count, HQ, funding, remote policy, tech stack, Glassdoor rating, notes), independent of discovery
+
+### Curation
+
+- **CURATE-01**: A curation layer combines signals (match score, company quality, stage, salary, remote-friendliness, tech stack, growth) into a priority ranking (HIGH/MED/LOW) per opportunity
+
 ### Sources
 
 - **SRC-01**: LinkedIn source via authenticated Playwright session
@@ -117,6 +136,9 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | LLM-02 | Phase 1 | Pending |
 | LLM-03 | Phase 1 | Pending |
 | LLM-04 | Phase 1 | Pending |
+| COMP-01 | Phase 1 | Pending |
+| COMP-02 | Phase 2 | Pending |
+| COMP-03 | Phase 2 | Pending |
 | DISC-01 | Phase 2 | Pending |
 | DISC-02 | Phase 2 | Pending |
 | DISC-03 | Phase 2 | Pending |
@@ -124,6 +146,7 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | DISC-05 | Phase 2 | Pending |
 | DISC-06 | Phase 2 | Pending |
 | DISC-07 | Phase 2 | Pending |
+| DISC-08 | Phase 2 | Pending |
 | MATCH-01 | Phase 3 | Pending |
 | MATCH-02 | Phase 3 | Pending |
 | MATCH-03 | Phase 3 | Pending |
@@ -141,10 +164,10 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | SCHED-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 33 total
-- Mapped to phases: 33 ✓
+- v1 requirements: 38 total
+- Mapped to phases: 38 ✓
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-29*
-*Last updated: 2026-06-29 after roadmap creation (traceability populated)*
+*Last updated: 2026-06-29 after Source/Company architecture adjustment (split Company Discovery from Job Discovery)*
