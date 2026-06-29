@@ -45,7 +45,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A `JobEvents` append-only table records immutable events for important transitions (`jobId, agent, event, payload, createdAt`; e.g. `JOB_DISCOVERED`, `MATCH_STARTED`, `MATCH_COMPLETED`, `MATCH_REJECTED`, `TAILOR_STARTED`, `TAILOR_COMPLETED`, `ERROR`); `Job.status` remains current-state, events are written only through the repository layer and never updated/deleted, and a job's full history is reconstructable by querying its events
   3. A generic `Artifacts` table (`jobId, type, path, mimeType, metadata, createdAt`) stores typed artifacts (`resume_pdf`, `resume_html`, `resume_json`, `cover_letter`, `llm_response`, `analysis`, `screenshot`, …) so new artifact types require no schema change; Jobs reference artifacts through this table rather than per-type path columns
   4. The resume exists as a Zod-validated structured master (`resume/master.yaml`) covering Profile, Summary, Skills, Experience, Projects, Education, Certificates, Languages; a renderer turns a structured resume into ATS-readable, single-column, selectable-text PDF via an HTML stage; and a deterministic structured-vs-structured integrity validator (entity-diff over the typed model) rejects any tailored resume introducing a company/technology/project/claim absent from the master — all without ever parsing a PDF
-**Plans**: TBD (run `/gsd:plan-phase 01.1`)
+**Plans**: 5 plans
+- [ ] 01.1-01-PLAN.md — Historical-data schema + migration (AgentRuns, JobEvents, Artifacts tables)
+- [ ] 01.1-02-PLAN.md — JobEvents (append-only) + Artifacts (generic) repositories + barrel wiring
+- [ ] 01.1-03-PLAN.md — AgentRunRepository + central runAgent run-history wrapper + token/cost aggregation
+- [ ] 01.1-04-PLAN.md — Structured resume master Zod schema + fail-fast YAML loader (no PDF input)
+- [ ] 01.1-05-PLAN.md — HTML->PDF renderer (single-column, selectable-text) + deterministic integrity validator
 
 ### Phase 2: Job Discovery
 **Goal**: Produce trustworthy `NEW` job rows by reading seeded `Company` records, dispatching each to its ATS adapter (Collector + per-ATS adapter over public JSON APIs), deduping and filtering before storage, keeping the Companies KB current, and surviving individual company/source failures — with the seam designed so an automated Company Discovery agent can later replace seeding without touching this pipeline.
@@ -97,7 +102,7 @@ Phases execute in numeric order: 1 → 1.1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundations | 5/5 | Complete | 2026-06-29 |
-| 1.1 Observability, Auditability & Resume SoT (INSERTED) | 0/TBD | Not started | - |
+| 1.1 Observability, Auditability & Resume SoT (INSERTED) | 0/5 | Not started | - |
 | 2. Job Discovery | 0/TBD | Not started | - |
 | 3. Matching | 0/TBD | Not started | - |
 | 4. Resume Customization | 0/TBD | Not started | - |
