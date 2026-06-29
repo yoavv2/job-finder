@@ -12,22 +12,22 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 - [x] **FND-01**: All settings load from a YAML config file (schedule, filters, keywords, countries, `minimumMatchScore`, `llm.provider`) — no hardcoded values
 - [x] **FND-02**: Config is validated against a Zod schema on load; invalid config fails fast with a clear error
 - [x] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
-- [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Companies`, `Jobs`, and `Applications` tables
-- [ ] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
+- [x] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Companies`, `Jobs`, and `Applications` tables
+- [x] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
 - [x] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
 - [x] **FND-07**: A unified `Agent` interface exists (`name`, `run(ctx): Promise<AgentResult>`) and agents are registered in a plugin registry — new agents add without modifying existing ones
 - [x] **FND-08**: A job-status state machine is defined (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`); agents claim rows atomically by status
 
 ### LLM Provider
 
-- [ ] **LLM-01**: A provider-agnostic `LLMProvider` interface defines the operations agents need (e.g. `scoreJob`, `tailorResume`)
-- [ ] **LLM-02**: At least two concrete providers implement the interface (e.g. OpenAI + Claude), selected via `llm.provider` config without code changes
-- [ ] **LLM-03**: Structured LLM outputs are schema-validated (Zod) so malformed responses are caught, not silently used
-- [ ] **LLM-04**: Job-description text is treated as untrusted input — sanitized/delimited before being sent to the LLM to resist prompt injection
+- [x] **LLM-01**: A provider-agnostic `LLMProvider` interface defines the operations agents need (e.g. `scoreJob`, `tailorResume`)
+- [x] **LLM-02**: At least two concrete providers implement the interface (e.g. OpenAI + Claude), selected via `llm.provider` config without code changes
+- [x] **LLM-03**: Structured LLM outputs are schema-validated (Zod) so malformed responses are caught, not silently used
+- [x] **LLM-04**: Job-description text is treated as untrusted input — sanitized/delimited before being sent to the LLM to resist prompt injection
 
 ### Companies
 
-- [ ] **COMP-01**: A `Company` entity/table exists (`id, name, ats, boardToken, careersUrl, website, firstSeenAt, lastSeenAt, active`) — an accumulating knowledge base, not a config file
+- [x] **COMP-01**: A `Company` entity/table exists (`id, name, ats, boardToken, careersUrl, website, firstSeenAt, lastSeenAt, active`) — an accumulating knowledge base, not a config file
 - [ ] **COMP-02**: v1 bootstraps companies from a seed (config/seed file) — explicitly a temporary bootstrap, designed so an automated Company Discovery agent can later populate the same table without changing Job Discovery
 - [ ] **COMP-03**: Syncing jobs for a company updates its `lastSeenAt`; a company referenced by a job but not yet recorded is upserted (sets `firstSeenAt`) so the Companies KB stays current automatically
 
@@ -127,16 +127,16 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | FND-01 | Phase 1 | Complete |
 | FND-02 | Phase 1 | Complete |
 | FND-03 | Phase 1 | Complete |
-| FND-04 | Phase 1 | Pending |
-| FND-05 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Complete |
+| FND-05 | Phase 1 | Complete |
 | FND-06 | Phase 1 | Complete |
 | FND-07 | Phase 1 | Complete |
 | FND-08 | Phase 1 | Complete |
-| LLM-01 | Phase 1 | Pending |
-| LLM-02 | Phase 1 | Pending |
-| LLM-03 | Phase 1 | Pending |
-| LLM-04 | Phase 1 | Pending |
-| COMP-01 | Phase 1 | Pending |
+| LLM-01 | Phase 1 | Complete |
+| LLM-02 | Phase 1 | Complete |
+| LLM-03 | Phase 1 | Complete |
+| LLM-04 | Phase 1 | Complete |
+| COMP-01 | Phase 1 | Complete |
 | COMP-02 | Phase 2 | Pending |
 | COMP-03 | Phase 2 | Pending |
 | DISC-01 | Phase 2 | Pending |

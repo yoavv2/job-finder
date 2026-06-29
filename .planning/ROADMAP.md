@@ -12,7 +12,7 @@ This roadmap builds a plugin-based multi-agent job-application pipeline from the
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundations** - Config, persistence seam, agent/registry/state-machine contracts, and the provider-agnostic LLM layer that everything depends on
+- [x] **Phase 1: Foundations** - Config, persistence seam, agent/registry/state-machine contracts, and the provider-agnostic LLM layer that everything depends on (completed 2026-06-29)
 - [ ] **Phase 2: Job Discovery** - Job Discovery reads seeded `Company` records, dispatches each to its ATS adapter, and syncs/dedupes/filters jobs into `NEW` rows while keeping the Companies KB current
 - [ ] **Phase 3: Matching** - Matching agent scores every `NEW` job against the resume and branches to `SCORED` or `REJECTED_LOW_SCORE`
 - [ ] **Phase 4: Resume Customization** - Resume agent tailors eligible jobs into integrity-validated `Resume_Company.pdf` files and marks them `TAILORED`
@@ -30,11 +30,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A unified `Agent` interface (`name`, `run(ctx)`) and a registry exist such that registering a new agent requires no change to existing agents, and the job-status state machine (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`) is enforced for transitions
   4. A provider-agnostic `LLMProvider` interface with at least two concrete implementations (e.g. OpenAI + Claude) is selectable purely via `llm.provider` config, returns Zod-schema-validated structured output, and delimits/sanitizes job-description text as untrusted input
 **Plans**: 5 plans
-- [ ] 01-foundations/01-PLAN.md — Typed YAML config (Zod) + fail-fast loader + secrets/.env boundary
-- [ ] 01-foundations/02-PLAN.md — Drizzle schema (Companies/Jobs/Applications) + WAL client + job-status state machine
-- [ ] 01-foundations/03-PLAN.md — Provider-agnostic LLMProvider (OpenAI + Anthropic) + Zod-validated structured output + JD sanitizer
-- [ ] 01-foundations/04-PLAN.md — Repository layer + atomic claim/transition (overlap-proven) + state-machine enforcement
-- [ ] 01-foundations/05-PLAN.md — Agent interface + registry + AgentContext + buildContext wiring
+- [x] 01-foundations/01-PLAN.md — Typed YAML config (Zod) + fail-fast loader + secrets/.env boundary
+- [x] 01-foundations/02-PLAN.md — Drizzle schema (Companies/Jobs/Applications) + WAL client + job-status state machine
+- [x] 01-foundations/03-PLAN.md — Provider-agnostic LLMProvider (OpenAI + Anthropic) + Zod-validated structured output + JD sanitizer
+- [x] 01-foundations/04-PLAN.md — Repository layer + atomic claim/transition (overlap-proven) + state-machine enforcement
+- [x] 01-foundations/05-PLAN.md — Agent interface + registry + AgentContext + buildContext wiring
 
 ### Phase 2: Job Discovery
 **Goal**: Produce trustworthy `NEW` job rows by reading seeded `Company` records, dispatching each to its ATS adapter (Collector + per-ATS adapter over public JSON APIs), deduping and filtering before storage, keeping the Companies KB current, and surviving individual company/source failures — with the seam designed so an automated Company Discovery agent can later replace seeding without touching this pipeline.
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations | 0/5 | Not started | - |
+| 1. Foundations | 5/5 | Complete | 2026-06-29 |
 | 2. Job Discovery | 0/TBD | Not started | - |
 | 3. Matching | 0/TBD | Not started | - |
 | 4. Resume Customization | 0/TBD | Not started | - |
