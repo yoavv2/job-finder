@@ -1,0 +1,119 @@
+# Requirements: Autonomous Job Application Agent
+
+**Defined:** 2026-06-29
+**Core Value:** Reduce manual job-search work by 90%+ while maintaining high application quality — the discovery → matching → resume-tailoring loop runs autonomously and produces trustworthy, job-specific resumes.
+
+## v1 Requirements
+
+v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, and the Scheduler that ties them together. Each agent communicates only through the SQLite database and is independently runnable.
+
+### Foundation
+
+- [ ] **FND-01**: All settings load from a YAML config file (schedule, filters, keywords, countries, `minimumMatchScore`, `llm.provider`) — no hardcoded values
+- [ ] **FND-02**: Config is validated against a Zod schema on load; invalid config fails fast with a clear error
+- [ ] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
+- [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Jobs` and `Applications` tables
+- [ ] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
+- [ ] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
+- [ ] **FND-07**: A unified `Agent` interface exists (`name`, `run(ctx): Promise<AgentResult>`) and agents are registered in a plugin registry — new agents add without modifying existing ones
+- [ ] **FND-08**: A job-status state machine is defined (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`); agents claim rows atomically by status
+
+### LLM Provider
+
+- [ ] **LLM-01**: A provider-agnostic `LLMProvider` interface defines the operations agents need (e.g. `scoreJob`, `tailorResume`)
+- [ ] **LLM-02**: At least two concrete providers implement the interface (e.g. OpenAI + Claude), selected via `llm.provider` config without code changes
+- [ ] **LLM-03**: Structured LLM outputs are schema-validated (Zod) so malformed responses are caught, not silently used
+- [ ] **LLM-04**: Job-description text is treated as untrusted input — sanitized/delimited before being sent to the LLM to resist prompt injection
+
+### Discovery
+
+- [ ] **DISC-01**: Discovery agent fetches published jobs from ATS public JSON APIs via a Collector + per-ATS Adapter pattern
+- [ ] **DISC-02**: Greenhouse adapter retrieves and normalizes jobs into the common `Jobs` shape
+- [ ] **DISC-03**: Lever, Ashby, and Workable adapters each retrieve and normalize jobs (added additively, one file each)
+- [ ] **DISC-04**: New jobs are deduplicated on a stable identity key (`source` + external job id) so re-runs don't create duplicates
+- [ ] **DISC-05**: Jobs are filtered by configured keywords, location/country, and seniority before storage
+- [ ] **DISC-06**: Newly discovered jobs are stored with `status = NEW` and discovery metadata (source, url, postedDate, discoveredAt)
+- [ ] **DISC-07**: Discovery paces requests politely (backoff/retry) and survives a single source failing without aborting the run
+
+### Matching
+
+- [ ] **MATCH-01**: Matching agent reads every `NEW` job and scores it 0–100 against the resume/skills/experience
+- [ ] **MATCH-02**: A cheap keyword pre-filter runs before the LLM call to avoid scoring obviously-irrelevant jobs
+- [ ] **MATCH-03**: Scoring output is structured: `{ score, strengths[], missingSkills[], recommendation }`, persisted to the job row
+- [ ] **MATCH-04**: Each job is scored once and the result persisted (idempotent) so daily runs don't re-spend tokens
+- [ ] **MATCH-05**: Jobs scoring below `minimumMatchScore` are marked `REJECTED_LOW_SCORE`; those at/above advance to `SCORED`
+
+### Resume Customization
+
+- [ ] **RESUME-01**: Resume agent runs only for jobs at/above the configured match-score threshold
+- [ ] **RESUME-02**: Given the base resume + job description, it produces a tailored resume (reorder skills, rewrite summary, emphasize relevant experience, optimize keywords)
+- [ ] **RESUME-03**: A deterministic integrity validator rejects any output containing a company, technology, project, or claim not present in the base resume — fabrication is blocked mechanically, not just by prompt wording
+- [ ] **RESUME-04**: The tailored resume is rendered to `Resume_CompanyName.pdf` with selectable text (ATS-readable, single-column)
+- [ ] **RESUME-05**: The generated PDF path is stored on the job/application row and the job transitions to `TAILORED`
+
+### Scheduler & Operability
+
+- [ ] **SCHED-01**: Each agent is independently executable from a CLI entrypoint (e.g. one subcommand per agent)
+- [ ] **SCHED-02**: A scheduler runs agents on configured intervals (croner / system cron / Codex Scheduled Tasks invoking the CLI)
+- [ ] **SCHED-03**: An overlap guard prevents a new scheduled run from starting while the previous one is still active
+- [ ] **SCHED-04**: Runs are logged (structured logs) and per-agent errors are recorded without crashing the whole pipeline
+- [ ] **SCHED-05**: Missed runs self-heal — discovery/matching catch up by querying DB state rather than relying on having run on time
+
+## v2 Requirements
+
+Deferred to future release. Tracked, not in current roadmap.
+
+### Cover Letter
+
+- **COVER-01**: Generate `CoverLetter_Company.pdf` or plain text when needed
+
+### Application (Auto-Apply)
+
+- **APPLY-01**: Open application pages with Playwright, fill contact info, upload resume + cover letter
+- **APPLY-02**: Stop at `READY_FOR_SUBMIT` — capture screenshot + resume + match score, require one human click; never auto-submit
+- **APPLY-03**: Mark complex/ambiguous applications `Needs Human`; never auto-answer screening questions without explicit config
+
+### Email Monitoring
+
+- **EMAIL-01**: Read Gmail hourly, classify messages (interview / assessment / rejection / offer / recruiter), update application status
+
+### Reporting
+
+- **REPORT-01**: Weekly report (jobs found, applications submitted, interviews, rejections, response rate, avg match score, top companies, most-requested skills)
+
+### Sources
+
+- **SRC-01**: LinkedIn source via authenticated Playwright session
+- **SRC-02**: Company career-page adapters
+
+## Out of Scope
+
+Explicitly excluded for v1. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| LinkedIn in v1 | Login + anti-bot + CAPTCHA + constant DOM changes + ToS risk; add after ATS pipeline is robust |
+| Playwright DOM scraping for discovery | All four ATS boards expose public JSON APIs — `fetch` is simpler, stable, and avoids bot detection |
+| Auto-submitting applications | Hard safety rule — human approves the final click; prevents sending wrong resumes |
+| Auto-answering screening questions | Hallucination risk; requires explicit per-question config (v2+) |
+| Fabricating resume content | Cardinal sin — reorder/rewrite/emphasize only, enforced by the entity-diff validator |
+| CSV / Google Sheets / Airtable storage | SQLite from day one; ORM keeps future DB swap near-transparent |
+| n8n / Make / low-code orchestrators | Everything is code |
+| Future agents (networking, recruiter follow-up, salary, interview prep, portfolio, A/B, market trends) | Architecture supports them; not built in v1 |
+
+## Traceability
+
+Populated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (filled by roadmapper) | | |
+
+**Coverage:**
+- v1 requirements: 33 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 33 ⚠️
+
+---
+*Requirements defined: 2026-06-29*
+*Last updated: 2026-06-29 after initial definition*
