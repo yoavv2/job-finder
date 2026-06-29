@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-04-PLAN.md (Wave 3)
-last_updated: "2026-06-29T14:18:49.322Z"
-last_activity: "2026-06-29 — Completed 01-04 (repository layer: JobRepository atomic claim proven safe under overlap + Company/Application repos + buildRepositories factory); 86/86 tests green, typecheck clean"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-06-29T14:25:37.601Z"
+last_activity: "2026-06-29 — Completed 01-05 (agent core: Agent/AgentContext/AgentResult contracts + open/closed AgentRegistry + buildContext wiring repos/llm/config/pino-logger/clock); 93/93 tests green, typecheck clean. Phase 1 complete."
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-29)
 ## Current Position
 
 Phase: 1 of 5 (Foundations)
-Plan: 4 of 5 in current phase
-Status: In progress — Wave 3 complete (plans 01-04)
-Last activity: 2026-06-29 — Completed 01-04 (repository layer: JobRepository atomic claim proven safe under overlap + Company/Application repos + buildRepositories factory); 86/86 tests green, typecheck clean
+Plan: 5 of 5 in current phase
+Status: Phase 1 complete — all 5 plans done (Wave 4 complete)
+Last activity: 2026-06-29 — Completed 01-05 (agent core: Agent/AgentContext/AgentResult contracts + open/closed AgentRegistry + buildContext wiring repos/llm/config/pino-logger/clock); 93/93 tests green, typecheck clean. Phase 1 complete.
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [████████░░] 80%
 *Updated after each plan completion*
 | Phase 01 P01 | 5 | 2 tasks | 10 files |
 | Phase 01 P04 | 12 | 3 tasks | 9 files |
+| Phase 01-foundations P05 | 4 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - [Phase 01]: Toolchain: requires Node >=22 (use nvm v22.22.0) and corepack pnpm@9 — system pnpm 7 + Node 19 fail with ERR_INVALID_THIS
 - [Phase 01]: Repository layer hides Drizzle/raw SQL inside src/db; agents depend on JobRepository/CompanyRepository/ApplicationRepository via buildRepositories(handle)
 - [Phase 01]: Atomic claim = single BEGIN IMMEDIATE UPDATE...WHERE status=from ... RETURNING on the raw sqlite handle; proven by overlap test to never double-process a job
+- [Phase 01-foundations]: Agent core: unified Agent interface + Map-based open/closed AgentRegistry; buildContext(config, overrides) does manual DI wiring repos+llm+config+pino-logger+injected clock into one AgentContext (no DI framework, no god base class)
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T14:17:53.237Z
-Stopped at: Completed 01-04-PLAN.md (Wave 3)
+Last session: 2026-06-29T14:25:30.418Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
