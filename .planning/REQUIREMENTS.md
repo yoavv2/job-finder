@@ -14,9 +14,9 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 - [x] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
 - [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Companies`, `Jobs`, and `Applications` tables
 - [ ] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
-- [ ] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
+- [x] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
 - [ ] **FND-07**: A unified `Agent` interface exists (`name`, `run(ctx): Promise<AgentResult>`) and agents are registered in a plugin registry — new agents add without modifying existing ones
-- [ ] **FND-08**: A job-status state machine is defined (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`); agents claim rows atomically by status
+- [x] **FND-08**: A job-status state machine is defined (`NEW → SCORING → SCORED → TAILORING → TAILORED`, plus `REJECTED_LOW_SCORE` / `ERROR`); agents claim rows atomically by status
 
 ### LLM Provider
 
@@ -129,9 +129,9 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 | FND-03 | Phase 1 | Complete |
 | FND-04 | Phase 1 | Pending |
 | FND-05 | Phase 1 | Pending |
-| FND-06 | Phase 1 | Pending |
+| FND-06 | Phase 1 | Complete |
 | FND-07 | Phase 1 | Pending |
-| FND-08 | Phase 1 | Pending |
+| FND-08 | Phase 1 | Complete |
 | LLM-01 | Phase 1 | Pending |
 | LLM-02 | Phase 1 | Pending |
 | LLM-03 | Phase 1 | Pending |

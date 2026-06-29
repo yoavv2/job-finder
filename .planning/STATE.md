@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 01-03-PLAN.md (Wave 2)
-last_updated: "2026-06-29T14:05:00.000Z"
-last_activity: 2026-06-29 — Plans 01-03 executed (config, persistence, LLM); 62/62 tests green
+status: executing
+stopped_at: Completed 01-04-PLAN.md (Wave 3)
+last_updated: "2026-06-29T14:18:49.322Z"
+last_activity: "2026-06-29 — Completed 01-04 (repository layer: JobRepository atomic claim proven safe under overlap + Company/Application repos + buildRepositories factory); 86/86 tests green, typecheck clean"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-29)
 ## Current Position
 
 Phase: 1 of 5 (Foundations)
-Plan: 3 of 5 in current phase
-Status: In progress — Wave 2 complete (plans 01, 02, 03)
-Last activity: 2026-06-29 — Completed 01-02 (Drizzle schema + WAL client + status state machine) and 01-03 (provider-agnostic LLM layer); 62/62 tests green, typecheck clean
+Plan: 4 of 5 in current phase
+Status: In progress — Wave 3 complete (plans 01-04)
+Last activity: 2026-06-29 — Completed 01-04 (repository layer: JobRepository atomic claim proven safe under overlap + Company/Application repos + buildRepositories factory); 86/86 tests green, typecheck clean
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [██████░░░░] 60%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 5 | 2 tasks | 10 files |
+| Phase 01 P04 | 12 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Config: single Zod schema (ConfigSchema) is the source of truth; Config type via z.infer; loadConfig parses YAML, validates fail-fast, and freezes the result
 - [Phase 01]: Secrets: getEnv() reading process.env/.env is the only sanctioned key-read path; keys never in config.yaml or source; .env gitignored from first commit
 - [Phase 01]: Toolchain: requires Node >=22 (use nvm v22.22.0) and corepack pnpm@9 — system pnpm 7 + Node 19 fail with ERR_INVALID_THIS
+- [Phase 01]: Repository layer hides Drizzle/raw SQL inside src/db; agents depend on JobRepository/CompanyRepository/ApplicationRepository via buildRepositories(handle)
+- [Phase 01]: Atomic claim = single BEGIN IMMEDIATE UPDATE...WHERE status=from ... RETURNING on the raw sqlite handle; proven by overlap test to never double-process a job
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T10:14:43.757Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-06-29T14:17:53.237Z
+Stopped at: Completed 01-04-PLAN.md (Wave 3)
 Resume file: None
