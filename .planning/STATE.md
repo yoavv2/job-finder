@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-06-29T10:14:50.537Z"
+last_activity: 2026-06-29 — Source/Company architecture adjustment applied; 38/38 requirements mapped across 5 phases
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 1
+  percent: 20
+---
+
 # Project State
 
 ## Project Reference
@@ -10,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-29)
 ## Current Position
 
 Phase: 1 of 5 (Foundations)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-06-29 — Source/Company architecture adjustment applied; 38/38 requirements mapped across 5 phases
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-06-29 — Completed 01-01 (typed config substrate: Zod schema, loadConfig, getEnv, secrets boundary)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -34,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P01 | 5 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -48,6 +65,9 @@ Recent decisions affecting current work:
 - [Phase 4]: Resume integrity enforced mechanically by a deterministic entity-diff validator (non-negotiable acceptance criterion), not by prompt wording
 - [Architecture]: Source (ATS provider) ≠ Company (emergent entity). Two independent pipelines meet only at the `Companies` table — Company Discovery (future) vs Job Discovery (v1). v1 seeds companies as a bootstrap; Job Discovery reads Company records and is agnostic to how they arrived
 - [Roadmap]: Phase 2 reframed as "Job Discovery" over seeded Companies (Collector dispatches by `ats`); Company Discovery, Enrichment, and a Curation layer are v2/future
+- [Phase 01]: Config: single Zod schema (ConfigSchema) is the source of truth; Config type via z.infer; loadConfig parses YAML, validates fail-fast, and freezes the result
+- [Phase 01]: Secrets: getEnv() reading process.env/.env is the only sanctioned key-read path; keys never in config.yaml or source; .env gitignored from first commit
+- [Phase 01]: Toolchain: requires Node >=22 (use nvm v22.22.0) and corepack pnpm@9 — system pnpm 7 + Node 19 fail with ERR_INVALID_THIS
 
 ### Pending Todos
 
@@ -63,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29 12:28
-Stopped at: Source/Company architecture adjustment applied across PROJECT/REQUIREMENTS/ROADMAP/STATE
+Last session: 2026-06-29T10:14:43.757Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

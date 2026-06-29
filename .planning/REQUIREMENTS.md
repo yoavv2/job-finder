@@ -9,9 +9,9 @@ v1 = the core pipeline: Foundations, Discovery, Matching, Resume Customization, 
 
 ### Foundation
 
-- [ ] **FND-01**: All settings load from a YAML config file (schedule, filters, keywords, countries, `minimumMatchScore`, `llm.provider`) — no hardcoded values
-- [ ] **FND-02**: Config is validated against a Zod schema on load; invalid config fails fast with a clear error
-- [ ] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
+- [x] **FND-01**: All settings load from a YAML config file (schedule, filters, keywords, countries, `minimumMatchScore`, `llm.provider`) — no hardcoded values
+- [x] **FND-02**: Config is validated against a Zod schema on load; invalid config fails fast with a clear error
+- [x] **FND-03**: Secrets (LLM API keys) load from environment / `.env`; `.env` is gitignored and never committed
 - [ ] **FND-04**: SQLite database is created and migrated via the ORM (Drizzle + better-sqlite3) with `Companies`, `Jobs`, and `Applications` tables
 - [ ] **FND-05**: Database opens in WAL mode with a `busy_timeout` so scheduled/overlapping runs don't corrupt or deadlock
 - [ ] **FND-06**: A repository/data-access layer wraps all DB reads/writes (no raw SQL in agents) so the DB is swappable
@@ -124,9 +124,9 @@ Explicitly excluded for v1. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
-| FND-03 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
+| FND-03 | Phase 1 | Complete |
 | FND-04 | Phase 1 | Pending |
 | FND-05 | Phase 1 | Pending |
 | FND-06 | Phase 1 | Pending |
