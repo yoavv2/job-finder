@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Secrets — NEVER commit
+.env
+
+# Local databases (SQLite + WAL)
+*.db
+*.db-wal
+*.db-shm
+
+# Build / generated output
+dist/
+output/
+*.pdf
+data/
